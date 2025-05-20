@@ -25,18 +25,24 @@ type
     btnInsertUser: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure alignColumnDatagrid;
     procedure btnInsertUserClick(Sender: TObject);
     procedure editTCChange(Sender: TObject);
-    procedure listGrid;
-    procedure searchInListGrid;
     procedure editAdChange(Sender: TObject);
     procedure editSoyadChange(Sender: TObject);
     procedure DBGrid1DblClick(Sender: TObject);
+    procedure DBGrid1CellClick(Column: TColumn);
   private
-    { Private declarations }
+    // gride listeyi getirir
+    procedure listGrid;
+    // tc, ad, soyad kýsýmlarýnýn herhangi biri ile özel arama yapar
+    procedure searchInListGrid;
+    // kolonun geniþlik ayaramasýný manuel yapar
+    procedure alignColumnDatagrid(width: integer);
+
+    procedure deleteData(tc,ad,soyad: string);
+
   public
-    { Public declarations }
+
   end;
 
 var
@@ -63,6 +69,22 @@ begin
 
 end;
 
+procedure TForm1.DBGrid1CellClick(Column: TColumn);
+var
+  tc,ad,soyad:  string;
+begin
+  // tikladigim satirin kolonu sil ise asagidaki islemleri yap
+  if Column.Title.Caption = 'Sil' then
+    begin
+      // 1. kolonu tc degiskenine aktar
+      tc := DB.datasource.DataSet.Fields[0].AsString;
+      ad := DB.datasource.DataSet.Fields[1].AsString;
+      soyad := DB.datasource.DataSet.Fields[2].AsString;
+      deleteData(tc,ad,soyad);
+
+    end;
+end;
+
 procedure TForm1.DBGrid1DblClick(Sender: TObject);
 var
   formUpdate: TfrmUpdateData;
@@ -78,6 +100,30 @@ begin
   formUpdate.ShowModal;
   listGrid;
 
+end;
+
+procedure TForm1.deleteData(tc,ad,soyad: string);
+var
+  sqlString: string;
+begin
+  if MessageDlg(ad+ ' '+soyad+' kaydýný silmek istediðinize emin misin?', mtConfirmation,
+    [TMsgDlgBtn.mbYes, mbNo], 0) = mrYes then
+    begin
+      try
+        sqlString := 'Delete from kullanicilar where tc = :tc';
+        DB.openDatabase;
+        DB.query.sql.Clear;
+        DB.query.sql.Text := sqlString;
+        DB.query.ParamByName('tc').AsString := tc;
+        DB.query.ExecSQL;
+        ShowMessage('Kayýt silindi!');
+        listGrid;
+
+      except
+        on ex: Exception do
+          ShowMessage(ex.Message);
+      end;
+    end;
 end;
 
 procedure TForm1.editAdChange(Sender: TObject);
@@ -97,20 +143,20 @@ end;
 
 // datagrid kolonlarini static olarak hizalar
 // veriler tabloya sigmiyorsa kullanabilirsin
-procedure TForm1.alignColumnDatagrid;
+procedure TForm1.alignColumnDatagrid(width: integer);
 var
   i: integer;
 begin
   for i := 0 to DBGrid1.Columns.Count - 1 do // kolon geniþliði ayarlama
-    DBGrid1.Columns[i].Width := 5 + DBGrid1.Canvas.TextWidth
-      (DBGrid1.Columns[i].Title.Caption) + 50;
+    DBGrid1.Columns[i].width := 5 + DBGrid1.Canvas.TextWidth
+      (DBGrid1.Columns[i].Title.Caption) + width;
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // veritabanini kapatip bellekten siler
   DB.closeDatabase;
-  DB.Free; //
+  DB.Free;
 
 end;
 
@@ -132,8 +178,8 @@ begin
     DBGrid1.Columns.Clear;
     DB.openDatabase;
 
-    DB.query.SQL.Clear;
-    DB.query.SQL.Text := 'Select * from kullanicilar';
+    DB.query.sql.Clear;
+    DB.query.sql.Text := 'Select * from kullanicilar';
     DB.query.Open();
 
     DBGrid1.Columns.Clear;
@@ -146,7 +192,7 @@ begin
           begin
             FieldName := DB.query.Fields[i].FieldName;
             Title.Caption := DB.query.Fields[i].DisplayName;
-            Width := 100;
+            width := 150;
           end;
       end;
 
@@ -154,12 +200,13 @@ begin
     with DBGrid1.Columns.Add do
       begin
         Title.Caption := 'Sil';
-        Width := 50;
+        width := 50;
+
       end;
 
   except
     on ex: Exception do
-      ShowMessage(ex.Message + ex.StackTrace);
+      ShowMessage(ex.Message);
   end;
 end;
 
@@ -169,7 +216,7 @@ var
 begin
   try
     DB.openDatabase;
-    DB.query.SQL.Clear;
+    DB.query.sql.Clear;
     sqlString := 'select * from kullanicilar where 1 = 1';
 
     if editTC.Text <> '' then
@@ -179,7 +226,7 @@ begin
     if editSoyad.Text <> '' then
       sqlString := sqlString + ' and lower(soyad) LIKE lower(:soyad)';
 
-    DB.query.SQL.Text := sqlString;
+    DB.query.sql.Text := sqlString;
 
     if editTC.Text <> '' then
       DB.query.ParamByName('tc').AsString := '%' + editTC.Text + '%';

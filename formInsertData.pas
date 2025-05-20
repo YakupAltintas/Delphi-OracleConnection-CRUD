@@ -38,9 +38,9 @@ begin
      db.query.sql.Clear;
   db.query.sql.Text :=
     'INSERT INTO kullanicilar (tc,ad,soyad) VALUES (:tc,:ad,:soyad)';
-  db.query.ParamByName('tc').AsString := editTC.Text;
-  db.query.ParamByName('ad').AsString := editAd.Text;
-  db.query.ParamByName('soyad').AsString := editSoyad.Text;
+  db.query.ParamByName('tc').AsWideString := editTC.Text;
+  db.query.ParamByName('ad').AsWideString := editAd.Text;
+  db.query.ParamByName('soyad').AsWideString := editSoyad.Text;
   db.query.ExecSQL;
   ShowMessage('Kayit eklendi!');
   except on ex: Exception do
