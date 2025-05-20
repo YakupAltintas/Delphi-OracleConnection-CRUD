@@ -128,8 +128,12 @@
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="DataBase.pas"/>
-        <DCCReference Include="formYeniKayit.pas">
+        <DCCReference Include="formInsertData.pas">
             <Form>frmYeniKayit</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="formUpdateData.pas">
+            <Form>frmUpdateData</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Base">

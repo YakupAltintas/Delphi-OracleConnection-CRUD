@@ -12,8 +12,9 @@ uses
 type
 
   TDataBaseOracle = class(TObject)
-    constructor Create(dbGrid: TDBGrid); overload;//bir listeleme yapilacaksa kullanilir
-    constructor Create(); overload;// listeleme yoksa kullanilir
+    constructor Create(dbGrid: TDBGrid); overload;
+    // bir listeleme yapilacaksa kullanilir
+    constructor Create(); overload; // listeleme yoksa kullanilir
   public
   var
     query:        TFDQuery;

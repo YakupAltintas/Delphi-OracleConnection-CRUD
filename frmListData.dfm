@@ -52,6 +52,7 @@ object Form1: TForm1
     TitleFont.Height = -12
     TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
+    OnDblClick = DBGrid1DblClick
   end
   object editAd: TEdit
     Left = 289

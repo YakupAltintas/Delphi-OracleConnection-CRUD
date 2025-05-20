@@ -11,7 +11,7 @@ uses
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.VCLUI.Wait, FireDAC.Comp.Client, FireDAC.Stan.Param, FireDAC.DatS,
   FireDAC.DApt.Intf, FireDAC.DApt, FireDAC.Comp.DataSet, DataBase,
-  formYeniKayit;
+  formInsertData, formUpdateData;
 
 type
   TForm1 = class(TForm)
@@ -32,6 +32,7 @@ type
     procedure searchInListGrid;
     procedure editAdChange(Sender: TObject);
     procedure editSoyadChange(Sender: TObject);
+    procedure DBGrid1DblClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -59,6 +60,23 @@ begin
     on ex: Exception do
       ShowMessage(ex.Message);
   end;
+
+end;
+
+procedure TForm1.DBGrid1DblClick(Sender: TObject);
+var
+  formUpdate: TfrmUpdateData;
+  tc:         string;
+  ad:         string;
+  soyad:      string;
+begin
+  tc := DB.datasource.DataSet.Fields[0].AsString;
+  ad := DB.datasource.DataSet.Fields[1].AsString;
+  soyad := DB.datasource.DataSet.Fields[2].AsString;
+
+  formUpdate := TfrmUpdateData.Create(self, tc, ad, soyad);
+  formUpdate.ShowModal;
+  listGrid;
 
 end;
 
@@ -105,12 +123,40 @@ begin
 end;
 
 procedure TForm1.listGrid;
+var
+  i:          Integer;
+  fieldCount: Integer;
 begin
   try
+
+    DBGrid1.Columns.Clear;
     DB.openDatabase;
+
     DB.query.SQL.Clear;
     DB.query.SQL.Text := 'Select * from kullanicilar';
     DB.query.Open();
+
+    DBGrid1.Columns.Clear;
+
+    // Tüm alanlarý otomatik olarak kolona çevir
+    fieldCount := DB.query.fieldCount;
+    for i := 0 to fieldCount - 1 do
+      begin
+        with DBGrid1.Columns.Add do
+          begin
+            FieldName := DB.query.Fields[i].FieldName;
+            Title.Caption := DB.query.Fields[i].DisplayName;
+            Width := 100;
+          end;
+      end;
+
+    // En sona manuel "Sil" kolonu ekle
+    with DBGrid1.Columns.Add do
+      begin
+        Title.Caption := 'Sil';
+        Width := 50;
+      end;
+
   except
     on ex: Exception do
       ShowMessage(ex.Message + ex.StackTrace);
@@ -142,7 +188,6 @@ begin
     if editSoyad.Text <> '' then
       DB.query.ParamByName('soyad').AsString := '%' + editSoyad.Text + '%';
     DB.query.Open();
-
 
   except
     on ex: Exception do

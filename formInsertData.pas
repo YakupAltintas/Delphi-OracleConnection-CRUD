@@ -1,4 +1,4 @@
-unit formYeniKayit;
+unit formInsertData;
 
 interface
 
